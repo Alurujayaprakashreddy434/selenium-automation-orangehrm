@@ -18,6 +18,7 @@ public class LoginTest {
     public void loginToOrangeHRM() {
         driver.get("https://opensource-demo.orangehrmlive.com/");
         System.out.println("Title: " + driver.getTitle());
+        
     }
 
     @AfterClass
@@ -25,3 +26,5 @@ public class LoginTest {
         driver.quit();
     }
 }
+
+// This is for testing 
