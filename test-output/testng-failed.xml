@@ -5,8 +5,8 @@
     <classes>
       <class name="Login.LoginTest">
         <methods>
-          <include name="loginToOrangeHRM"/>
-          <include name="tearDown"/>
+          <include name="teardown"/>
+          <include name="loginAndVerifyAdminPage"/>
           <include name="setup"/>
         </methods>
       </class> <!-- Login.LoginTest -->

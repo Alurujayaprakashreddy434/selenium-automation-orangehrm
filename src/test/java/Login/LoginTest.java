@@ -1,57 +1,67 @@
 package Login;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.time.Duration;
-
+import io.github.bonigarcia.wdm.WebDriverManager;
 import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.io.FileHandler;
 import org.openqa.selenium.support.ui.*;
-
-import io.github.bonigarcia.wdm.WebDriverManager;
+import org.testng.Assert;
 import org.testng.annotations.*;
+import java.io.File;
+import java.io.IOException;
+import java.time.Duration;
+import org.apache.commons.io.FileUtils;
 
 public class LoginTest {
+
     WebDriver driver;
+    WebDriverWait wait;
 
     @BeforeClass
     public void setup() {
         WebDriverManager.chromedriver().setup();
         driver = new ChromeDriver();
+        wait = new WebDriverWait(driver, Duration.ofSeconds(20));
         driver.manage().window().maximize();
     }
 
     @Test
-    public void loginToOrangeHRM() throws IOException {
+    public void loginAndVerifyAdminPage() throws IOException, InterruptedException {
         driver.get("https://opensource-demo.orangehrmlive.com/");
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
 
-        // Login
         wait.until(ExpectedConditions.visibilityOfElementLocated(By.name("username"))).sendKeys("Admin");
         driver.findElement(By.name("password")).sendKeys("admin123");
         driver.findElement(By.cssSelector("button[type='submit']")).click();
 
-        // Wait for dashboard to load
-        wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//span[text()='Dashboard']")));
+        System.out.println("Logged in and Dashboard visible.");
+        takeScreenshot("after_login.png");
 
-        // Click Admin tab
-        wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//span[text()='Admin']"))).click();
+        WebElement adminTab = wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//span[text()='Admin']")));
+        adminTab.click();
+        Thread.sleep(1000); // optional delay for animation
 
-        // Optional: Screenshot
-        File src = ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE);
-        Files.createDirectories(Paths.get("screenshots"));
-        FileHandler.copy(src, new File("screenshots/admin_page.png"));
+        takeScreenshot("after_admin_click.png");
 
-        System.out.println("Test completed and screenshot saved.");
+        WebElement header = wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("div.oxd-table-filter-header-title > h5")));
+        Assert.assertEquals(header.getText().trim(), "System Users", "'System Users' header is not displayed.");
+
+        System.out.println("'System Users' header is visible. Test Passed.");
     }
 
     @AfterClass
-    public void tearDown() {
+    public void teardown() {
         if (driver != null) {
             driver.quit();
         }
+    }
+
+    public void takeScreenshot(String fileName) throws IOException {
+        File srcFile = ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE);
+        String path = System.getProperty("user.dir") + File.separator + "screenshots";
+        File screenshotsDir = new File(path);
+        if (!screenshotsDir.exists()) {
+            screenshotsDir.mkdir();
+        }
+        FileUtils.copyFile(srcFile, new File(screenshotsDir, fileName));
+        System.out.println("Screenshot saved: " + fileName);
     }
 }
